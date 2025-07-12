@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:mvvm/features/home/views/home_screen.dart';
 import 'package:mvvm/features/report_problem/models/report_problem.dart';
 import '../../features/report_problem/views/report_problem_list_screen.dart';
 import '../../features/report_problem/views/report_problem_detail_screen.dart';
@@ -55,10 +56,11 @@ class AppRouter {
           builder: (context, state) => const SplashScreen(),
         ),
         GoRoute(path: login, builder: (context, state) => const LoginScreen()),
-        GoRoute(
-          path: home,
-          builder: (context, state) => const ReportProblemListScreen(),
-        ),
+        // GoRoute(
+        //   path: home,
+        //   builder: (context, state) => const ReportProblemListScreen(),
+        // ),
+        GoRoute(path: home, builder: (context, state) => const HomeScreen()),
         GoRoute(
           path: profile,
           builder: (context, state) => const ProfileScreen(),

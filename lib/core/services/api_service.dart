@@ -1,9 +1,11 @@
 import 'package:dio/dio.dart';
-import 'package:mvvm/features/auth/models/login_response.dart';
 import '../constants/api_constants.dart';
-import 'storage_service.dart';
-import '../di/service_locator.dart';
+import '../models/app_error.dart';
 import '../models/api_response.dart';
+import '../utils/app_res_code.dart';
+import 'storage_service.dart';
+import 'connectivity_service.dart';
+import '../di/service_locator.dart';
 
 class ApiService {
   late final Dio _dio;
@@ -25,10 +27,22 @@ class ApiService {
   }
 
   void _setupInterceptors() {
-    _dio.options.followRedirects = true;
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          // Check internet connectivity before making request
+          final hasInternet = await ConnectivityService.hasInternetConnection();
+          if (!hasInternet) {
+            handler.reject(
+              DioException(
+                requestOptions: options,
+                type: DioExceptionType.connectionError,
+                message: 'No internet connection',
+              ),
+            );
+            return;
+          }
+
           // Add token to requests (except auth endpoints)
           if (!_isAuthEndpoint(options.path)) {
             final storageService = ServiceLocator.get<StorageService>();
@@ -94,15 +108,59 @@ class ApiService {
 
   Future<ApiResponse<T>> get<T>(
     String path, {
+
     Map<String, dynamic>? queryParameters,
     required T Function(Map<String, dynamic>) fromJson,
   }) async {
     try {
       final response = await _dio.get(path, queryParameters: queryParameters);
 
-      return ApiResponse.fromJson(response.data, fromJson);
+      // Parse the response
+      final apiResponse = ApiResponse.fromJson(response.data, fromJson);
+
+      // Check if the response code indicates success
+      if (!AppResCode.isSuccess(apiResponse.resCode)) {
+        throw AppError.apiResponse(apiResponse.resCode, apiResponse.message);
+      }
+
+      return apiResponse;
     } on DioException catch (e) {
       throw _handleDioError(e);
+    } on AppError {
+      rethrow; // Re-throw AppError as is
+    } catch (e) {
+      throw AppError.unknown('Unexpected error occurred', originalError: e);
+    }
+  }
+
+  Future<ApiResponse<T>> getDataByBody<T>(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    required T Function(Map<String, dynamic>) fromJson,
+  }) async {
+    try {
+      final response = await _dio.get(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+      );
+
+      // Parse the response
+      final apiResponse = ApiResponse.fromJson(response.data, fromJson);
+
+      // Check if the response code indicates success
+      if (!AppResCode.isSuccess(apiResponse.resCode)) {
+        throw AppError.apiResponse(apiResponse.resCode, apiResponse.message);
+      }
+
+      return apiResponse;
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } on AppError {
+      rethrow; // Re-throw AppError as is
+    } catch (e) {
+      throw AppError.unknown('Unexpected error occurred', originalError: e);
     }
   }
 
@@ -118,9 +176,22 @@ class ApiService {
         data: data,
         queryParameters: queryParameters,
       );
-      return ApiResponse.fromJson(response.data, fromJson);
+
+      // Parse the response
+      final apiResponse = ApiResponse.fromJson(response.data, fromJson);
+
+      // Check if the response code indicates success
+      if (!AppResCode.isSuccess(apiResponse.resCode)) {
+        throw AppError.apiResponse(apiResponse.resCode, apiResponse.message);
+      }
+
+      return apiResponse;
     } on DioException catch (e) {
       throw _handleDioError(e);
+    } on AppError {
+      rethrow; // Re-throw AppError as is
+    } catch (e) {
+      throw AppError.unknown('Unexpected error occurred', originalError: e);
     }
   }
 
@@ -132,34 +203,93 @@ class ApiService {
     required T Function(Map<String, dynamic>) fromJson,
   }) async {
     try {
+      print('ApiService: Making auth request to $path');
       final response = await _dio.post(
         path,
         data: data,
         queryParameters: queryParameters,
       );
 
-      if (T == LoginResponse) {
-        return fromJson(response.data);
-      } else {
-        return fromJson(response.data);
-      }
+      print('ApiService: Auth response status: ${response.statusCode}');
+      print('ApiService: Auth response data: ${response.data}');
+
+      // For LoginResponse, return the parsed response regardless of resCode
+      return fromJson(response.data);
     } on DioException catch (e) {
+      print('ApiService: DioException in postAuth: ${e.message}');
+      print('ApiService: DioException response: ${e.response?.data}');
+
+      // If we have a response with data, try to parse it as a login response
+      if (e.response?.data != null) {
+        try {
+          return fromJson(e.response!.data);
+        } catch (parseError) {
+          print('ApiService: Failed to parse error response: $parseError');
+        }
+      }
+
       throw _handleDioError(e);
     }
   }
 
-  Exception _handleDioError(DioException error) {
+  AppError _handleDioError(DioException error) {
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return Exception('Connection timeout');
+        return AppError.timeout('Request timed out. Please try again.');
+
+      case DioExceptionType.connectionError:
+        if (error.message?.contains('No internet connection') == true) {
+          return AppError.noInternet();
+        }
+        return AppError.network(
+          'Connection failed. Please check your internet connection.',
+        );
+
       case DioExceptionType.badResponse:
-        return Exception('Server error: ${error.response?.statusCode}');
+        final statusCode = error.response?.statusCode ?? 0;
+        switch (statusCode) {
+          case 400:
+            return AppError.server(
+              statusCode,
+              'Bad request. Please check your input.',
+            );
+          case 401:
+            return AppError.unauthorized(
+              'Session expired. Please login again.',
+            );
+          case 403:
+            return AppError.server(
+              statusCode,
+              'Access denied. You don\'t have permission.',
+            );
+          case 404:
+            return AppError.notFound('The requested resource was not found.');
+          case 500:
+            return AppError.server(
+              statusCode,
+              'Server error. Please try again later.',
+            );
+          case 502:
+          case 503:
+          case 504:
+            return AppError.server(
+              statusCode,
+              'Server is temporarily unavailable.',
+            );
+          default:
+            return AppError.server(
+              statusCode,
+              'Server error (${statusCode}). Please try again.',
+            );
+        }
+
       case DioExceptionType.cancel:
-        return Exception('Request cancelled');
+        return AppError.network('Request was cancelled.');
+
       default:
-        return Exception('Network error: ${error.message}');
+        return AppError.network('Network error. Please check your connection.');
     }
   }
 

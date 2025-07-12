@@ -6,17 +6,19 @@ import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../../features/auth/repositories/auth_repository.dart';
 import '../../features/auth/viewmodels/auth_viewmodel.dart';
+import '../../features/home/repositories/home_repository.dart';
+import '../../features/home/viewmodels/home_viewmodel.dart';
 
 class ServiceLocator {
   static final GetIt _getIt = GetIt.instance;
-  
+
   static T get<T extends Object>() => _getIt<T>();
-  
+
   static Future<void> init() async {
     // SharedPreferences
     final sharedPreferences = await SharedPreferences.getInstance();
     _getIt.registerSingleton<SharedPreferences>(sharedPreferences);
-    
+
     // Services
     _getIt.registerLazySingleton<StorageService>(
       () => StorageService(_getIt<SharedPreferences>()),
@@ -32,15 +34,26 @@ class ServiceLocator {
     _getIt.registerFactory<AuthViewModel>(
       () => AuthViewModel(_getIt<AuthRepository>()),
     );
-    
+
     // Repositories
     _getIt.registerLazySingleton<ReportProblemRepository>(
       () => ReportProblemRepository(_getIt<ApiService>()),
     );
-    
+
     // ViewModels
     _getIt.registerFactory<ReportProblemViewModel>(
       () => ReportProblemViewModel(_getIt<ReportProblemRepository>()),
     );
+
+    // Home Repository
+    _getIt.registerLazySingleton<HomeRepository>(
+      () => HomeRepository(_getIt<ApiService>()),
+    );
+
+    // Home ViewModel
+    _getIt.registerFactory<HomeViewModel>(
+      () => HomeViewModel(_getIt<HomeRepository>()),
+    );
   }
 }
+

@@ -9,6 +9,17 @@ class ApiConstants {
   static const String logout = '/auth/logout';
   static const String refreshToken = '/auth/refresh-token';
 
+  // Time Tracking Endpoints
+  static const String timesList = '/check/in/out/time/listv2';
+  static const String checkIn = '/times/check-in';
+  static const String checkOut = '/times/check-out';
+
+  // Home Endpoints
+  static const String menuItems = '/home/menu-items';
+  static const String banners = '/home/banners';
+  static const String recentTransactions = '/home/recent-transactions';
+  static const String notifications = '/notifications';
+
   // Storage Keys
   static const String userTokenKey = 'user_token';
   static const String userDataKey = 'user_data';

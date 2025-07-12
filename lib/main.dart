@@ -4,6 +4,7 @@ import 'core/di/service_locator.dart';
 import 'core/router/app_router.dart';
 import 'features/report_problem/viewmodels/report_problem_viewmodel.dart';
 import 'features/auth/viewmodels/auth_viewmodel.dart';
+import 'features/home/viewmodels/home_viewmodel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +27,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => ServiceLocator.get<ReportProblemViewModel>(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ServiceLocator.get<HomeViewModel>(),
         ),
       ],
       child: Consumer<AuthViewModel>(
