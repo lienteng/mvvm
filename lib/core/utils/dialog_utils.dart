@@ -67,11 +67,13 @@ class DialogUtils {
     required String resCode,
     VoidCallback? onOk,
   }) {
-    print('DialogUtils: showResponseCodeDialog called with resCode: $resCode');
-    print('DialogUtils: Context mounted: ${context.mounted}');
+    debugPrint(
+      '====DialogUtils: showResponseCodeDialog called with resCode: $resCode=====',
+    );
+    debugPrint('DialogUtils: Context mounted: ${context.mounted}');
 
     if (!context.mounted) {
-      print(
+      debugPrint(
         'DialogUtils: Context not mounted, cannot show response code dialog',
       );
       return;
@@ -80,10 +82,23 @@ class DialogUtils {
     final title = AppResCode.resCode(resCode);
     final message = AppResCode.getErrorMessage(resCode);
 
-    print('DialogUtils: Title: $title, Message: $message');
+    // final title = "Warning";
+    // final message = AppResCode.resCode(resCode);
 
-    // Call showErrorDialog directly instead of using post frame callback
-    showErrorDialog(context, title: title, message: message, onOk: onOk);
+    debugPrint('DialogUtils: Title: $title, Message: $message');
+
+    // ถ้า match ไม่ได้ → ใช้ข้อความ resCode เป็น message แทน
+    if (title == 'Unknown Warning' &&
+        message == 'Unknown error occurred. Please try again.') {
+      showErrorDialog(
+        context,
+        title: 'Warning',
+        message: resCode, // ใช้ resCode เป็นข้อความโดยตรง
+        onOk: onOk,
+      );
+    } else {
+      showErrorDialog(context, title: "Warning", message: title, onOk: onOk);
+    }
   }
 
   static void showLoadingDialog(BuildContext context, {String? message}) {

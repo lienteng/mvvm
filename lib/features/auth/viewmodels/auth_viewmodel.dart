@@ -1,4 +1,7 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:mvvm/core/models/app_error.dart';
+import 'package:mvvm/core/utils/dialog_utils.dart';
 import '../../../core/utils/app_res_code.dart';
 import '../models/login_response.dart';
 import '../repositories/auth_repository.dart';
@@ -52,15 +55,65 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
+  void _showDetails(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Error Details'),
+        content: SingleChildScrollView(
+          child: Text("gggg", style: const TextStyle(fontFamily: 'monospace')),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   // Login
+  // Future<String?> login({
+  //   required String username,
+  //   required String password,
+  //   String? fcmToken,
+  // }) async {
+  //   print('AuthViewModel: Starting login for user: $username');
+  //   // _setLoading(true);
+  //   // _clearError();
+
+  //   try {
+  //     final loginResponse = await _authRepository.login(
+  //       username: username,
+  //       password: password,
+  //       fcmToken: fcmToken,
+  //     );
+
+  //     if (AppResCode.isSuccess(loginResponse.resCode)) {
+  //       _currentUser = loginResponse.data;
+  //       _isLoggedIn = true;
+  //       notifyListeners(); // Triggers router redirect
+  //       return null; // ✅ Success → return null
+  //     } else {
+  //       print('AuthViewModel: Login failed: ${loginResponse.message}');
+  //       return loginResponse.resCode; // ❌ Fail → return resCode
+  //     }
+  //   } catch (e) {
+  //     print('AuthViewModel: Login exception: $e');
+  //     return '0020'; // ❌ Fail → return error code
+  //   } finally {
+  //     // _setLoading(false);
+  //   }
+  // }
+
   Future<String?> login({
     required String username,
     required String password,
     String? fcmToken,
   }) async {
-    print('AuthViewModel: Starting login for user: $username');
-    _setLoading(true);
-    _clearError();
+    // _setLoading(true);
+    // _clearError();
 
     try {
       final loginResponse = await _authRepository.login(
@@ -69,26 +122,17 @@ class AuthViewModel extends ChangeNotifier {
         fcmToken: fcmToken,
       );
 
-      print('AuthViewModel: Login response code: ${loginResponse.resCode}');
-      print('AuthViewModel: Login response message: ${loginResponse.message}');
-
       if (AppResCode.isSuccess(loginResponse.resCode)) {
         _currentUser = loginResponse.data;
         _isLoggedIn = true;
-        print('AuthViewModel: Login successful');
-        notifyListeners();
         return null; // Success
       } else {
-        _setError(AppResCode.getErrorMessage(loginResponse.resCode));
-        print('AuthViewModel: Login failed: ${loginResponse.message}');
-        return loginResponse.resCode; // Return error code
+        return loginResponse.resCode; // Fail
       }
-    } catch (e) {
-      print('AuthViewModel: Login exception: $e');
-      _setError('Network error: ${e.toString()}');
-      return '0020'; // Something went wrong
+    } on AppError catch (e) {
+      return e.message; // ✅ คืน AppError ทั้งก้อน
     } finally {
-      _setLoading(false);
+      // _setLoading(false);
     }
   }
 

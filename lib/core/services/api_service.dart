@@ -16,10 +16,17 @@ class ApiService {
         baseUrl: ApiConstants.baseUrl,
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
+        sendTimeout: const Duration(seconds: 30),
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json; charset=UTF-8',
           'Accept': 'application/json',
+          'X-Device-Platform': 'Flutter',
+          'X-App-Version': '1.0.0',
         },
+        responseType: ResponseType.json,
+        receiveDataWhenStatusError: true,
+        followRedirects: true,
+        validateStatus: (_) => true,
       ),
     );
 
@@ -111,9 +118,16 @@ class ApiService {
 
     Map<String, dynamic>? queryParameters,
     required T Function(Map<String, dynamic>) fromJson,
+    Options? options,
+    CancelToken? cancelToken,
   }) async {
     try {
-      final response = await _dio.get(path, queryParameters: queryParameters);
+      final response = await _dio.get(
+        path,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      );
 
       // Parse the response
       final apiResponse = ApiResponse.fromJson(response.data, fromJson);
@@ -138,12 +152,16 @@ class ApiService {
     dynamic data,
     Map<String, dynamic>? queryParameters,
     required T Function(Map<String, dynamic>) fromJson,
+    Options? options,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         path,
         data: data,
         queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
       );
 
       // Parse the response
@@ -169,12 +187,16 @@ class ApiService {
     dynamic data,
     Map<String, dynamic>? queryParameters,
     required T Function(Map<String, dynamic>) fromJson,
+    Options? options,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.post(
         path,
         data: data,
         queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
       );
 
       // Parse the response
@@ -200,7 +222,11 @@ class ApiService {
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
+
     required T Function(Map<String, dynamic>) fromJson,
+
+    Options? options,
+    CancelToken? cancelToken,
   }) async {
     try {
       print('ApiService: Making auth request to $path');
@@ -208,6 +234,8 @@ class ApiService {
         path,
         data: data,
         queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
       );
 
       print('ApiService: Auth response status: ${response.statusCode}');

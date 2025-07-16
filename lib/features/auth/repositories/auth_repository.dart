@@ -15,8 +15,6 @@ class AuthRepository {
     required String password,
     String? fcmToken,
   }) async {
-    print('AuthRepository: Attempting login for user: $username');
-
     final data = {
       'username': username,
       'password': password,
@@ -30,12 +28,9 @@ class AuthRepository {
         fromJson: LoginResponse.fromJson,
       );
 
-      print('AuthRepository: Login API response code: ${response.resCode}');
-
       // Only save auth data if login was successful
       if (response.resCode == '0000' && response.data != null) {
         await _saveAuthData(response);
-        print('AuthRepository: Auth data saved successfully');
       }
 
       return response;

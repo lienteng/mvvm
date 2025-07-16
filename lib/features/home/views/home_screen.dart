@@ -109,9 +109,6 @@ class _HomeScreenState extends State<HomeScreen>
 
           // Show error if no data and has error
           if (homeViewModel.hasError && !homeViewModel.hasData) {
-            print(
-              'HomeScreen: Error=============================================: ${homeViewModel.error}=======================================================',
-            );
             return ErrorDisplayWidget(
               error: homeViewModel.error!,
               onRetry: homeViewModel.canRetry
@@ -473,4 +470,6 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
   }
+
+  
 }
