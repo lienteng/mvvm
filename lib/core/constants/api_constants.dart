@@ -16,6 +16,11 @@ class ApiConstants {
   static const String logout = '/auth/logout';
   static const String refreshToken = '/auth/refresh-token';
 
+  // Biometric Attendance Endpoints
+  static const String employees = '/employees';
+  static const String attendance = '/attendance';
+  static const String attendanceHistory = '/attendance/history';
+
   // Time Tracking Endpoints
   static const String timesList = '/check/in/out/time/listv2';
   static const String checkIn = '/times/check-in';

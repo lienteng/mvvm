@@ -103,7 +103,6 @@ class AppError {
       case ErrorType.validation:
         return message;
       case ErrorType.unknown:
-      default:
         return 'Something went wrong. Please try again.';
     }
   }

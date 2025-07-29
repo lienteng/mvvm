@@ -17,7 +17,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initializeApp() async {
-    print('SplashScreen: Starting initialization');
+  
 
     // Add a small delay for splash screen effect
     await Future.delayed(const Duration(seconds: 1));

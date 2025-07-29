@@ -51,6 +51,8 @@ dependencies:
   
   # Dependency Injection
   get_it: ^7.6.0
+  local_auth: ^2.3.0 
+  device_info_plus: ^11.5.0
 
   # connectivity_plus: ^6.1.4
   # network_info_plus: ^6.1.4

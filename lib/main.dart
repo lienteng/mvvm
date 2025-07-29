@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mvvm/features/biometric_attendance/viewmodels/attendance_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'core/di/service_locator.dart';
 import 'core/router/app_router.dart';
@@ -30,6 +31,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => ServiceLocator.get<HomeViewModel>(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ServiceLocator.get<AttendanceViewModel>(),
         ),
       ],
       child: Consumer<AuthViewModel>(

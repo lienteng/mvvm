@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/home_viewmodel.dart';
 import '../widgets/menu_grid.dart';
@@ -217,6 +218,18 @@ class _HomeScreenState extends State<HomeScreen>
 
                   Text(
                     'user name: ${homeViewModel.user?.userName ?? 'Unknown'}',
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  TextButton(
+                    onPressed: () {
+                      context.push('/biometric-attendance');
+                    },
+                    child: const Text(
+                      'Go to Biometric Attendance',
+                      style: TextStyle(color: Colors.blue, fontSize: 16),
+                    ),
                   ),
 
                   // Time Tracking Card
