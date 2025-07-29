@@ -10,6 +10,7 @@ import '../../features/biometric_attendance/services/biometric_service.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../theme/theme_service.dart';
+import '../localization/language_service.dart';
 import '../../features/auth/repositories/auth_repository.dart';
 import '../../features/auth/viewmodels/auth_viewmodel.dart';
 
@@ -31,6 +32,9 @@ class ServiceLocator {
     _getIt.registerLazySingleton<BiometricService>(() => BiometricService());
     _getIt.registerLazySingleton<ThemeService>(
       () => ThemeService(_getIt<StorageService>()),
+    );
+    _getIt.registerLazySingleton<LanguageService>(
+      () => LanguageService(_getIt<StorageService>()),
     );
 
     // Auth Repository

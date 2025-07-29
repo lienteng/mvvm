@@ -246,6 +246,15 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ],
                   ),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.push('/language-settings');
+                    },
+                    child: const Text(
+                      'Go to Language Settings',
+                      style: TextStyle(color: Colors.green, fontSize: 16),
+                    ),
+                  ),
 
                   // Time Tracking Card
                   TimeTrackingCard(
