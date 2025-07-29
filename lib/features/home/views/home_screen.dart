@@ -222,14 +222,29 @@ class _HomeScreenState extends State<HomeScreen>
 
                   const SizedBox(height: 24),
 
-                  TextButton(
-                    onPressed: () {
-                      context.push('/biometric-attendance');
-                    },
-                    child: const Text(
-                      'Go to Biometric Attendance',
-                      style: TextStyle(color: Colors.blue, fontSize: 16),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          context.push('/settings');
+                        },
+                        child: const Text(
+                          'Go to Settings',
+                          style: TextStyle(color: Colors.purple, fontSize: 16),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          context.push('/biometric-attendance');
+                        },
+                        child: const Text(
+                          'Go to Biometric',
+                          style: TextStyle(color: Colors.pink, fontSize: 16),
+                        ),
+                      ),
+                    ],
                   ),
 
                   // Time Tracking Card

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mvvm/features/biometric_attendance/views/biometric_attendance_screen.dart';
 import 'package:mvvm/features/report_problem/models/report_problem.dart';
+import 'package:mvvm/features/settings/views/theme_settings_screen.dart';
 import '../../features/report_problem/views/report_problem_list_screen.dart';
 import '../../features/report_problem/views/report_problem_detail_screen.dart';
 import '../../features/home/views/home_screen.dart';
@@ -18,6 +19,7 @@ class AppRouter {
   static const String login = '/login';
   static const String profile = '/profile';
   static const String biometricAttendance = '/biometric-attendance';
+  static const String settings = '/settings';
 
   static GoRouter createRouter(AuthViewModel authViewModel) {
     return GoRouter(
@@ -29,13 +31,13 @@ class AppRouter {
         final isLoading = authViewModel.isLoading;
         final currentLocation = state.matchedLocation;
 
-        print(
+        debugPrint(
           'Router redirect - isInitialized: $isInitialized, isLoggedIn: $isLoggedIn, isLoading: $isLoading, currentLocation: $currentLocation',
         );
 
         // Don't redirect while loading (during login process)
         if (isLoading) {
-          print(
+          debugPrint(
             'Router redirect - Loading in progress, staying on current page',
           );
           return null;
@@ -80,6 +82,10 @@ class AppRouter {
         GoRoute(
           path: profile,
           builder: (context, state) => const ProfileScreen(),
+        ),
+        GoRoute(
+          path: settings,
+          builder: (context, state) => const ThemeSettingsScreen(),
         ),
         GoRoute(
           path: biometricAttendance,

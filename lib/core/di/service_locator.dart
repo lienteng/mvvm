@@ -1,15 +1,15 @@
 import 'package:get_it/get_it.dart';
-import 'package:mvvm/features/biometric_attendance/repositories/attendance_repository.dart';
-import 'package:mvvm/features/biometric_attendance/services/biometric_service.dart';
-import 'package:mvvm/features/biometric_attendance/viewmodels/attendance_viewmodel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../features/report_problem/repositories/report_problem_repository.dart';
 import '../../features/report_problem/viewmodels/report_problem_viewmodel.dart';
 import '../../features/home/repositories/home_repository.dart';
 import '../../features/home/viewmodels/home_viewmodel.dart';
-
+import '../../features/biometric_attendance/repositories/attendance_repository.dart';
+import '../../features/biometric_attendance/viewmodels/attendance_viewmodel.dart';
+import '../../features/biometric_attendance/services/biometric_service.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
+import '../theme/theme_service.dart';
 import '../../features/auth/repositories/auth_repository.dart';
 import '../../features/auth/viewmodels/auth_viewmodel.dart';
 
@@ -29,6 +29,9 @@ class ServiceLocator {
     );
     _getIt.registerLazySingleton<ApiService>(() => ApiService());
     _getIt.registerLazySingleton<BiometricService>(() => BiometricService());
+    _getIt.registerLazySingleton<ThemeService>(
+      () => ThemeService(_getIt<StorageService>()),
+    );
 
     // Auth Repository
     _getIt.registerLazySingleton<AuthRepository>(
