@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mvvm/features/users/models/user_model.dart';
 import '../models/home_data.dart';
 import '../models/menu_item.dart';
 import '../models/banner_item.dart';
@@ -43,6 +44,7 @@ class HomeViewModel extends ChangeNotifier {
   List<TimeSchedule> get timeSchedules => _homeData?.timeSchedules ?? [];
   int get unreadNotificationCount =>
       notifications.where((n) => !n.isRead).length;
+  UserModel? get user => _homeData?.user;
 
   bool get isLoading => _loadingState == HomeLoadingState.loading;
   bool get isRefreshing => _loadingState == HomeLoadingState.refreshing;
@@ -100,23 +102,24 @@ class HomeViewModel extends ChangeNotifier {
   Future<void> loadHomeData() async {
     if (_loadingState == HomeLoadingState.loading) return;
 
-    print('HomeViewModel: Loading home data');
+    debugPrint('HomeViewModel: Loading home data');
     _setLoadingState(HomeLoadingState.loading);
     _clearError();
 
     try {
       final homeData = await _homeRepository.fetchHomeData();
-      print("HomeViewModel: Home data loaded successfully $homeData");
+
+      debugPrint("HomeViewModel: Home data loaded successfully $homeData");
       _homeData = homeData;
       _lastRefresh = DateTime.now();
       _setLoadingState(HomeLoadingState.loaded);
-      print('HomeViewModel: Home data loaded successfully');
+      debugPrint('HomeViewModel: Home data loaded successfully');
     } on AppError catch (e) {
-      print('HomeViewModel: AppError loading home data: $e');
+      debugPrint('HomeViewModel: AppError loading home data: $e');
       _setError(e);
       _setLoadingState(HomeLoadingState.error);
     } catch (e) {
-      print('HomeViewModel: Unexpected error loading home data: $e');
+      debugPrint('HomeViewModel: Unexpected error loading home data: $e');
       _setError(AppError.unknown('Failed to load data', originalError: e));
       _setLoadingState(HomeLoadingState.error);
     }
@@ -128,7 +131,7 @@ class HomeViewModel extends ChangeNotifier {
         _loadingState == HomeLoadingState.refreshing)
       return;
 
-    print('HomeViewModel: Refreshing home data');
+    debugPrint('HomeViewModel: Refreshing home data');
     _setLoadingState(HomeLoadingState.refreshing);
     _clearError();
 
@@ -137,13 +140,13 @@ class HomeViewModel extends ChangeNotifier {
       _homeData = homeData;
       _lastRefresh = DateTime.now();
       _setLoadingState(HomeLoadingState.loaded);
-      print('HomeViewModel: Home data refreshed successfully');
+      debugPrint('HomeViewModel: Home data refreshed successfully');
     } on AppError catch (e) {
-      print('HomeViewModel: AppError refreshing home data: $e');
+      debugPrint('HomeViewModel: AppError refreshing home data: $e');
       _setError(e);
       _setLoadingState(HomeLoadingState.error);
     } catch (e) {
-      print('HomeViewModel: Unexpected error refreshing home data: $e');
+      debugPrint('HomeViewModel: Unexpected error refreshing home data: $e');
       _setError(AppError.unknown('Failed to refresh data', originalError: e));
       _setLoadingState(HomeLoadingState.error);
     }
@@ -162,7 +165,7 @@ class HomeViewModel extends ChangeNotifier {
 
     if (_isCheckingIn) return false;
 
-    print('HomeViewModel: Starting check-in process');
+    debugPrint('HomeViewModel: Starting check-in process');
     _setCheckingIn(true);
     _clearMessages();
 
@@ -176,14 +179,14 @@ class HomeViewModel extends ChangeNotifier {
       _setSuccess('Check-in successful!');
       // Refresh the home data
       await refreshHomeData();
-      print('HomeViewModel: Check-in completed successfully');
+      debugPrint('HomeViewModel: Check-in completed successfully');
       return true;
     } on AppError catch (e) {
-      print('HomeViewModel: AppError during check-in: $e');
+      debugPrint('HomeViewModel: AppError during check-in: $e');
       _setError(e);
       return false;
     } catch (e) {
-      print('HomeViewModel: Unexpected error during check-in: $e');
+      debugPrint('HomeViewModel: Unexpected error during check-in: $e');
       _setError(AppError.unknown('Check-in failed', originalError: e));
       return false;
     } finally {
@@ -204,7 +207,7 @@ class HomeViewModel extends ChangeNotifier {
 
     if (_isCheckingOut) return false;
 
-    print('HomeViewModel: Starting check-out process');
+    debugPrint('HomeViewModel: Starting check-out process');
     _setCheckingOut(true);
     _clearMessages();
 
@@ -218,10 +221,10 @@ class HomeViewModel extends ChangeNotifier {
       _setSuccess('Check-out successful!');
       // Refresh the home data
       await refreshHomeData();
-      print('HomeViewModel: Check-out completed successfully');
+      debugPrint('HomeViewModel: Check-out completed successfully');
       return true;
     } on AppError catch (e) {
-      print('HomeViewModel: AppError during check-out: $e');
+      debugPrint('HomeViewModel: AppError during check-out: $e');
       _setError(e);
       return false;
     } catch (e) {
@@ -242,10 +245,10 @@ class HomeViewModel extends ChangeNotifier {
         notifyListeners();
       }
     } on AppError catch (e) {
-      print('HomeViewModel: Error updating menu items: $e');
+      debugPrint('HomeViewModel: Error updating menu items: $e');
       // Don't show error for individual section updates
     } catch (e) {
-      print('HomeViewModel: Unexpected error updating menu items: $e');
+      debugPrint('HomeViewModel: Unexpected error updating menu items: $e');
     }
   }
 
@@ -257,10 +260,10 @@ class HomeViewModel extends ChangeNotifier {
         notifyListeners();
       }
     } on AppError catch (e) {
-      print('HomeViewModel: Error updating banners: $e');
+      debugPrint('HomeViewModel: Error updating banners: $e');
       // Don't show error for individual section updates
     } catch (e) {
-      print('HomeViewModel: Unexpected error updating banners: $e');
+      debugPrint('HomeViewModel: Unexpected error updating banners: $e');
     }
   }
 
@@ -272,10 +275,12 @@ class HomeViewModel extends ChangeNotifier {
         notifyListeners();
       }
     } on AppError catch (e) {
-      print('HomeViewModel: Error updating recent transactions: $e');
+      debugPrint('HomeViewModel: Error updating recent transactions: $e');
       // Don't show error for individual section updates
     } catch (e) {
-      print('HomeViewModel: Unexpected error updating recent transactions: $e');
+      debugPrint(
+        'HomeViewModel: Unexpected error updating recent transactions: $e',
+      );
     }
   }
 
@@ -287,10 +292,10 @@ class HomeViewModel extends ChangeNotifier {
         notifyListeners();
       }
     } on AppError catch (e) {
-      print('HomeViewModel: Error updating notifications: $e');
+      debugPrint('HomeViewModel: Error updating notifications: $e');
       // Don't show error for individual section updates
     } catch (e) {
-      print('HomeViewModel: Unexpected error updating notifications: $e');
+      debugPrint('HomeViewModel: Unexpected error updating notifications: $e');
     }
   }
 
@@ -302,10 +307,10 @@ class HomeViewModel extends ChangeNotifier {
         notifyListeners();
       }
     } on AppError catch (e) {
-      print('HomeViewModel: Error updating time schedules: $e');
+      debugPrint('HomeViewModel: Error updating time schedules: $e');
       // Don't show error for individual section updates
     } catch (e) {
-      print('HomeViewModel: Unexpected error updating time schedules: $e');
+      debugPrint('HomeViewModel: Unexpected error updating time schedules: $e');
     }
   }
 
@@ -338,10 +343,12 @@ class HomeViewModel extends ChangeNotifier {
         notifyListeners();
       }
     } on AppError catch (e) {
-      print('HomeViewModel: Error marking notification as read: $e');
+      debugPrint('HomeViewModel: Error marking notification as read: $e');
       // Don't show error for this action
     } catch (e) {
-      print('HomeViewModel: Unexpected error marking notification as read: $e');
+      debugPrint(
+        'HomeViewModel: Unexpected error marking notification as read: $e',
+      );
     }
   }
 

@@ -35,3 +35,49 @@ class ApiResponse<T> {
     );
   }
 }
+
+class ApiResponseDataList<T> {
+  final String resCode;
+  final String message;
+  final List<T> data;
+
+  ApiResponseDataList({
+    required this.resCode,
+    required this.message,
+    required this.data,
+  });
+
+  factory ApiResponseDataList.fromJson(
+    Map<String, dynamic> json,
+    T Function(Map<String, dynamic>) fromJsonT,
+  ) {
+    return ApiResponseDataList(
+      resCode: json['resCode'],
+      message: json['message'],
+      data: (json['data'] as List).map((e) => fromJsonT(e)).toList(),
+    );
+  }
+}
+
+class ApiResponseSingle<T> {
+  final String resCode;
+  final String message;
+  final T data;
+
+  ApiResponseSingle({
+    required this.resCode,
+    required this.message,
+    required this.data,
+  });
+
+  factory ApiResponseSingle.fromJson(
+    Map<String, dynamic> json,
+    T Function(Map<String, dynamic>) fromJsonT,
+  ) {
+    return ApiResponseSingle(
+      resCode: json['resCode'],
+      message: json['message'],
+      data: fromJsonT(json['data']),
+    );
+  }
+}

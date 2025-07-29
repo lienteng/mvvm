@@ -1,3 +1,5 @@
+import 'package:mvvm/features/users/models/user_model.dart';
+
 import 'menu_item.dart';
 import 'banner_item.dart';
 import 'transaction_item.dart';
@@ -5,6 +7,7 @@ import 'notification_item.dart';
 import 'time_schedule.dart';
 
 class HomeData {
+  final UserModel? user;
   final List<MenuItem> menuItems;
   final List<BannerItem> banners;
   final List<TransactionItem> recentTransactions;
@@ -13,6 +16,7 @@ class HomeData {
   final DateTime lastUpdated;
 
   HomeData({
+    required this.user,
     required this.menuItems,
     required this.banners,
     required this.recentTransactions,
@@ -30,6 +34,7 @@ class HomeData {
     DateTime? lastUpdated,
   }) {
     return HomeData(
+      user: user ?? user,
       menuItems: menuItems ?? this.menuItems,
       banners: banners ?? this.banners,
       recentTransactions: recentTransactions ?? this.recentTransactions,

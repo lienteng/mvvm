@@ -40,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen>
           Consumer<HomeViewModel>(
             builder: (context, homeViewModel, child) {
               final unreadCount = homeViewModel.unreadNotificationCount;
+
               return Stack(
                 children: [
                   IconButton(
@@ -213,6 +214,10 @@ class _HomeScreenState extends State<HomeScreen>
                   // Welcome Section
                   _buildWelcomeSection(context),
                   const SizedBox(height: 24),
+
+                  Text(
+                    'user name: ${homeViewModel.user?.userName ?? 'Unknown'}',
+                  ),
 
                   // Time Tracking Card
                   TimeTrackingCard(
@@ -470,6 +475,4 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
   }
-
-  
 }

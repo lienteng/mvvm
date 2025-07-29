@@ -1,8 +1,15 @@
 class ApiConstants {
   static const String baseUrl = 'https://api-v2.super-vip.online/api/v2';
+  // static const String baseUrl = 'http://192.168.1.10:3001/api/v2';
 
   // Endpoints
   static const String reportProblems = '/work/problem/by/employee';
+
+  // User Endpoints
+  static const String userProfile = '/user/profile';
+  static const String userUpdate = '/user/update';
+  static const String userChangePassword = '/user/change-password';
+  static const String getUsers = '/user/by/id';
 
   // Auth Endpoints
   static const String login = '/auth/login';

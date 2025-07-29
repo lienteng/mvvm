@@ -9,7 +9,6 @@ import '../di/service_locator.dart';
 
 class ApiService {
   late final Dio _dio;
-
   ApiService() {
     _dio = Dio(
       BaseOptions(
@@ -29,7 +28,6 @@ class ApiService {
         validateStatus: (_) => true,
       ),
     );
-
     _setupInterceptors();
   }
 
@@ -113,6 +111,9 @@ class ApiService {
     );
   }
 
+  
+  
+
   Future<ApiResponse<T>> get<T>(
     String path, {
 
@@ -147,7 +148,7 @@ class ApiService {
     }
   }
 
-  Future<ApiResponse<T>> getDataByBody<T>(
+  Future<ApiResponseSingle<T>> getSingle<T>(
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
@@ -165,7 +166,7 @@ class ApiService {
       );
 
       // Parse the response
-      final apiResponse = ApiResponse.fromJson(response.data, fromJson);
+      final apiResponse = ApiResponseSingle.fromJson(response.data, fromJson);
 
       // Check if the response code indicates success
       if (!AppResCode.isSuccess(apiResponse.resCode)) {
@@ -178,6 +179,50 @@ class ApiService {
     } on AppError {
       rethrow; // Re-throw AppError as is
     } catch (e) {
+      throw AppError.unknown('Unexpected error occurred', originalError: e);
+    }
+  }
+
+  Future<ApiResponseDataList<T>> getDataByBody<T>(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    required T Function(Map<String, dynamic>) fromJson,
+    Options? options,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      print('ApiService: Making request to $path');
+      final response = await _dio.get(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      );
+
+      print('ApiService: Response status: ${response.statusCode}');
+      print('ApiService: Response data: ${response.data}');
+
+      // Parse the response
+      final apiResponse = ApiResponseDataList.fromJson(response.data, fromJson);
+
+      // Check if the response code indicates success
+      if (!AppResCode.isSuccess(apiResponse.resCode)) {
+        throw AppError.apiResponse(apiResponse.resCode, apiResponse.message);
+      }
+
+      print('ApiService: Response parsed: $apiResponse');
+
+      return apiResponse;
+    } on DioException catch (e) {
+      print('ApiService: DioException in getDataByBody: ${e.message}');
+      throw _handleDioError(e);
+    } on AppError {
+      print('ApiService: AppError in getDataByBody');
+      rethrow; // Re-throw AppError as is
+    } catch (e) {
+      print('ApiService: Unexpected error in getDataByBody: $e');
       throw AppError.unknown('Unexpected error occurred', originalError: e);
     }
   }

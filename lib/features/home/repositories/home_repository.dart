@@ -1,8 +1,9 @@
+import 'package:flutter/material.dart';
+import 'package:mvvm/features/users/models/user_model.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/models/api_response.dart';
 import '../../../core/models/app_error.dart';
 import '../../../core/services/api_service.dart';
-import '../../../core/utils/app_res_code.dart';
 import '../models/menu_item.dart';
 import '../models/banner_item.dart';
 import '../models/transaction_item.dart';
@@ -22,22 +23,27 @@ class HomeRepository {
     try {
       // Execute all API calls concurrently and handle individual failures
       final results = await Future.wait([
+        _fetchUserSafely(),
         _fetchMenuItemsSafely(),
         _fetchBannersSafely(),
         _fetchRecentTransactionsSafely(),
         _fetchNotificationsSafely(),
         _fetchTimeSchedulesSafely(),
       ]);
+      final user = results[0] as UserModel?;
+      if (user == null) {
+        throw AppError.unknown('User data is null');
+      }
+      final menuItems = results[1] as List<MenuItem>;
+      final banners = results[2] as List<BannerItem>;
+      final recentTransactions = results[3] as List<TransactionItem>;
+      final notifications = results[4] as List<NotificationItem>;
+      final timeSchedules = results[5] as List<TimeSchedule>;
 
-      final menuItems = results[0] as List<MenuItem>;
-      final banners = results[1] as List<BannerItem>;
-      final recentTransactions = results[2] as List<TransactionItem>;
-      final notifications = results[3] as List<NotificationItem>;
-      final timeSchedules = results[4] as List<TimeSchedule>;
-
-      print('HomeRepository: All data fetched successfully');
+      debugPrint('HomeRepository: All data fetched successfully');
 
       return HomeData(
+        user: user,
         menuItems: menuItems,
         banners: banners,
         recentTransactions: recentTransactions,
@@ -46,7 +52,7 @@ class HomeRepository {
         lastUpdated: DateTime.now(),
       );
     } catch (e) {
-      print('HomeRepository: Error fetching home data: $e');
+      debugPrint('HomeRepository: Error fetching home data: $e');
 
       // If it's an AppError, rethrow it
       if (e is AppError) {
@@ -63,11 +69,11 @@ class HomeRepository {
     try {
       return await _fetchMenuItems();
     } on AppError catch (e) {
-      print('HomeRepository: Error fetching menu items: $e');
+      debugPrint('HomeRepository: Error fetching menu items: $e');
       _logDetailedError('Menu Items', e);
       return []; // Return empty list on error
     } catch (e) {
-      print('HomeRepository: Unexpected error fetching menu items: $e');
+      debugPrint('HomeRepository: Unexpected error fetching menu items: $e');
       return [];
     }
   }
@@ -76,11 +82,11 @@ class HomeRepository {
     try {
       return await _fetchBanners();
     } on AppError catch (e) {
-      print('HomeRepository: Error fetching banners: $e');
+      debugPrint('HomeRepository: Error fetching banners: $e');
       _logDetailedError('Banners', e);
       return []; // Return empty list on error
     } catch (e) {
-      print('HomeRepository: Unexpected error fetching banners: $e');
+      debugPrint('HomeRepository: Unexpected error fetching banners: $e');
       return [];
     }
   }
@@ -89,11 +95,11 @@ class HomeRepository {
     try {
       return await _fetchRecentTransactions();
     } on AppError catch (e) {
-      print('HomeRepository: Error fetching recent transactions: $e');
+      debugPrint('HomeRepository: Error fetching recent transactions: $e');
       _logDetailedError('Recent Transactions', e);
       return []; // Return empty list on error
     } catch (e) {
-      print(
+      debugPrint(
         'HomeRepository: Unexpected error fetching recent transactions: $e',
       );
       return [];
@@ -104,11 +110,11 @@ class HomeRepository {
     try {
       return await _fetchNotifications();
     } on AppError catch (e) {
-      print('HomeRepository: Error fetching notifications: $e');
+      debugPrint('HomeRepository: Error fetching notifications: $e');
       _logDetailedError('Notifications', e);
       return []; // Return empty list on error
     } catch (e) {
-      print('HomeRepository: Unexpected error fetching notifications: $e');
+      debugPrint('HomeRepository: Unexpected error fetching notifications: $e');
       return [];
     }
   }
@@ -117,12 +123,27 @@ class HomeRepository {
     try {
       return await _fetchTimeSchedules();
     } on AppError catch (e) {
-      print('HomeRepository: Error fetching time schedules: $e');
+      debugPrint('HomeRepository: Error fetching time schedules: $e');
       _logDetailedError('Time Schedules', e);
       return []; // Return empty list on error
     } catch (e) {
-      print('HomeRepository: Unexpected error fetching time schedules: $e');
+      debugPrint(
+        'HomeRepository: Unexpected error fetching time schedules: $e',
+      );
       return [];
+    }
+  }
+
+  Future<UserModel?> _fetchUserSafely() async {
+    try {
+      return await _fetchUser();
+    } on AppError catch (e) {
+      debugPrint('HomeRepository: Error fetching user: $e');
+      _logDetailedError('User Fetch', e);
+      return null; // ✅ Return null instead of []
+    } catch (e) {
+      debugPrint('HomeRepository: Unexpected error fetching user: $e');
+      return null; // ✅ Return null instead of []
     }
   }
 
@@ -165,14 +186,46 @@ class HomeRepository {
   }
 
   Future<List<TimeSchedule>> _fetchTimeSchedules() async {
-    final data = {"empId": 36};
-    final response = await _apiService.getDataByBody<TimeSchedule>(
-      ApiConstants.timesList,
-      data: data,
-      fromJson: TimeSchedule.fromJson,
-    );
-    print('HomeRepository: Fetched time schedules: ${response.data}');
-    return response.data;
+    try {
+      final data = {"empId": 36};
+      final response = await _apiService.getDataByBody<TimeSchedule>(
+        ApiConstants.timesList,
+        data: data,
+        fromJson: TimeSchedule.fromJson,
+      );
+      debugPrint('HomeRepository: Fetched time schedules: ${response.data}');
+      return response.data;
+    } catch (e) {
+      debugPrint('HomeRepository: Error fetching time schedules: $e');
+      throw AppError.unknown(
+        'Failed to fetch time schedules',
+        originalError: e,
+      );
+    }
+  }
+
+  Future<UserModel> _fetchUser() async {
+    try {
+      debugPrint('HomeRepository: Fetching user data');
+
+      final response = await _apiService.getSingle<UserModel>(
+        '${ApiConstants.getUsers}/116',
+        fromJson: UserModel.fromJson,
+      );
+
+      if (response.data.id == 0) {
+        throw AppError.unknown('User data is null');
+      }
+
+      debugPrint(
+        'HomeRepository: User fetched successfully: ${response.message}',
+      );
+
+      return response.data; // Return the UserModel inside the wrapper
+    } catch (e) {
+      debugPrint('HomeRepository: Error fetching user: $e');
+      throw AppError.unknown('Failed to fetch user', originalError: e);
+    }
   }
 
   // Time tracking actions with proper error handling
@@ -181,7 +234,7 @@ class HomeRepository {
     required double latitude,
     required double longitude,
   }) async {
-    print('HomeRepository: Performing check-in');
+    debugPrint('HomeRepository: Performing check-in');
 
     final data = {
       'schedule_id': scheduleId,
@@ -197,12 +250,12 @@ class HomeRepository {
         fromJson: TimeSchedule.fromJson,
       );
 
-      print('HomeRepository: Check-in successful');
+      debugPrint('HomeRepository: Check-in successful');
       return response;
     } on AppError {
       rethrow; // Re-throw AppError as is
     } catch (e) {
-      print('HomeRepository: Unexpected error during check-in: $e');
+      debugPrint('HomeRepository: Unexpected error during check-in: $e');
       throw AppError.unknown('Check-in failed', originalError: e);
     }
   }
@@ -212,7 +265,7 @@ class HomeRepository {
     required double latitude,
     required double longitude,
   }) async {
-    print('HomeRepository: Performing check-out');
+    debugPrint('HomeRepository: Performing check-out');
 
     final data = {
       'schedule_id': scheduleId,
@@ -228,12 +281,12 @@ class HomeRepository {
         fromJson: TimeSchedule.fromJson,
       );
 
-      print('HomeRepository: Check-out successful');
+      debugPrint('HomeRepository: Check-out successful');
       return response;
     } on AppError {
       rethrow; // Re-throw AppError as is
     } catch (e) {
-      print('HomeRepository: Unexpected error during check-out: $e');
+      debugPrint('HomeRepository: Unexpected error during check-out: $e');
       throw AppError.unknown('Check-out failed', originalError: e);
     }
   }
@@ -257,7 +310,7 @@ class HomeRepository {
     } on AppError {
       rethrow;
     } catch (e) {
-      print('HomeRepository: Error marking notification as read: $e');
+      debugPrint('HomeRepository: Error marking notification as read: $e');
       throw AppError.unknown(
         'Failed to mark notification as read',
         originalError: e,
@@ -267,13 +320,13 @@ class HomeRepository {
 
   // Helper method to log detailed error information
   void _logDetailedError(String section, AppError error) {
-    print('=== ERROR DETAILS for $section ===');
-    print('Type: ${error.type}');
-    print('Message: ${error.message}');
-    print('Code: ${error.code}');
-    print('Status Code: ${error.statusCode}');
-    print('User Friendly: ${error.userFriendlyMessage}');
-    print('Can Retry: ${error.canRetry}');
-    print('================================');
+    debugPrint('=== ERROR DETAILS for $section ===');
+    debugPrint('Type: ${error.type}');
+    debugPrint('Message: ${error.message}');
+    debugPrint('Code: ${error.code}');
+    debugPrint('Status Code: ${error.statusCode}');
+    debugPrint('User Friendly: ${error.userFriendlyMessage}');
+    debugPrint('Can Retry: ${error.canRetry}');
+    debugPrint('================================');
   }
 }

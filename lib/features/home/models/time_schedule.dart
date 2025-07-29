@@ -25,6 +25,7 @@ class TimeSchedule {
     required this.checkType,
   });
 
+  /// Factory method for deserialization
   factory TimeSchedule.fromJson(Map<String, dynamic> json) {
     return TimeSchedule(
       scheduleId: json['schedule_id'],
@@ -40,6 +41,7 @@ class TimeSchedule {
     );
   }
 
+  /// Serialization method
   Map<String, dynamic> toJson() {
     return {
       'schedule_id': scheduleId,
@@ -55,7 +57,7 @@ class TimeSchedule {
     };
   }
 
-  // Helper getters
+  /// Helpers
   DateTime get scheduleDateParsed => DateTime.parse(scheduleDate);
 
   TimeOfDay get startTime => _parseTimeOfDay(stTime);
@@ -67,21 +69,34 @@ class TimeSchedule {
 
   String get formattedDate {
     final date = scheduleDateParsed;
-    return '${date.day}/${date.month}/${date.year}';
+    return '${date.day.toString().padLeft(2, '0')}/'
+        '${date.month.toString().padLeft(2, '0')}/'
+        '${date.year}';
   }
 
   String get formattedShiftTime => '$stTime - $toTime';
 
   List<double> get coordinates {
-    final coords = locationName.split(', ');
-    if (coords.length == 2) {
-      return [double.parse(coords[0]), double.parse(coords[1])];
-    }
-    return [0.0, 0.0];
+    try {
+      final parts = locationName.split(',');
+      if (parts.length == 2) {
+        return [double.parse(parts[0].trim()), double.parse(parts[1].trim())];
+      }
+    } catch (_) {}
+    return [0.0, 0.0]; // Fallback on parse error
   }
 
+  /// Internal helper for TimeOfDay parsing
   TimeOfDay _parseTimeOfDay(String timeString) {
     final parts = timeString.split(':');
     return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+  }
+
+  /// For debugging/logging
+  @override
+  String toString() {
+    return 'TimeSchedule(scheduleId: $scheduleId, empId: $empId, '
+        'date: $formattedDate, shift: $shiftName, '
+        'from: $frTime, to: $toTime, type: $checkType)';
   }
 }
